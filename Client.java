@@ -1,37 +1,34 @@
-package sem3;
+package seminar4;
 
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
 import java.util.Scanner;
-import lpi.server.rmi.IServer;
+import lpi.server.soap.ChatServer;
+import lpi.server.soap.IChatServer;
 
 public class Client {
 
     public static boolean flug = true;
 
-    public void start(int port) {
+    public void start() {
 
         try (Scanner scanner = new Scanner(System.in)) {
 
-            Registry registry = LocateRegistry.getRegistry(port);
-            IServer proxy = (IServer) registry.lookup(IServer.RMI_SERVER_NAME);
+            ChatServer serverWrapper = new ChatServer();
+            IChatServer serverProxy = serverWrapper.getChatServerProxy();
+
             System.out.println("Welcome to server");
-            Interpretator inter = new Interpretator(proxy);
-            
+
+            Interpretator inter = new Interpretator(serverProxy);
+
             while (flug) {
                 String inLine = scanner.nextLine().trim();
-                
+
                 if (!inLine.equals("")) {
                     inter.interpretator(inLine);
                 }
             }
 
-        } catch (RemoteException | NotBoundException ex) {
-            System.out.println("Problem conections");
+        } catch(Exception ex){
+            System.out.println("Connections problem");
         }
     }
-	
-
 }
