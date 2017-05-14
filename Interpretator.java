@@ -1,129 +1,66 @@
-package seminar2;
+package sem3;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import lpi.server.rmi.IServer;
 
 public class Interpretator {
-	
-    public static String sendComand = null;
 
-    CommandProcessingToServer comTo = new CommandProcessingToServer();
-    
-    public byte[] interpretator(String inLine) throws IOException {
+    private final CommandProcessing comP;
+    private final Parser parser = new Parser(); 
 
-        String[] comandMas = parsForComand(inLine);
-
-        switch (comandMas[0]) {
-            case "ping":
-                return comTo.pingToServer(comandMas[0]);
-
-            case "echo":
-                return comTo.echoToServer(comandMas);
-
-            case "login":
-                return comTo.loginToServer(comandMas);
-
-            case "list":
-                return comTo.listToServer(comandMas);
-
-            case "msg":
-                return comTo.msgToServer(comandMas);
-
-            case "file":
-                return comTo.fileToServer(comandMas);
-
-            case "receivemsg":
-                return comTo.receiveMsgToServer();
-
-            case "receivefile":                
-                return comTo.receiveFileToServer();
-
-            default:
-                System.out.println("No this comand");
-                return null;
-        }
+    public Interpretator(IServer ob) {
+        comP = new CommandProcessing(ob);        
     }
     
-    ComandProcessingFromServer comFrom = new ComandProcessingFromServer();
+    public void interpretator(String inLine){
 
-    public void interpretator(byte[] serverResp) {
-        if (serverResp != null) {
-            try {
-                switch (sendComand) {
-                    case "ping":
-                        comFrom.pingFromServer(serverResp);
-                        break;
+        String[] comandMas = parser.parsForComand(inLine);
 
-                    case "echo":
-                        comFrom.echoFromServer(serverResp);
-                        break;
+        try {
+            switch (comandMas[0]) {
 
-                    case "login":
-                        comFrom.loginFromServer(serverResp);                        
-                        break;
+                case "ping":
+                    comP.ping();
+                    break;
 
-                    case "list":
-                        comFrom.listFromServer(serverResp);
-                        break;
+                case "echo":
+                    comP.echo(comandMas);
+                    break;
 
-                    case "msg":
-                        comFrom.msgFromServer(serverResp);                        
-                        break;
+                case "login":
+                    comP.login(comandMas);
+                    break;
 
-                    case "file":
-                        comFrom.fileFromServer(serverResp); 
-                        break;
+                case "list":
+                    comP.list();
+                    break;
 
-                    case "receivemsg":
-                        comFrom.receiveMsg(serverResp);
-                        break;
+                case "msg":
+                    comP.msg(comandMas);
+                    break;
 
-                    case "receivefile":
-                        comFrom.receiveFile(serverResp);
-                        break;
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                System.out.println("problem with interpretation responds");
+                case "file":
+                    comP.file(comandMas);
+                    break;
+
+                case "receivemsg":
+                    comP.receiveMsg();
+                    break;
+
+                case "receivefile":
+                    comP.receiveFile();
+                    break;
+
+                case "exit":
+                    comP.exit();
+                    break;
+
+                default:
+                    System.out.println("No this comand");
+                    break;
             }
+        } catch (Exception ex) {
+            System.out.println("Interpretator problem");
+            ex.printStackTrace();
         }
-    }
-
-    public static byte[] serialize(Object object) throws IOException {
-        try (ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-                ObjectOutputStream objectStream = new ObjectOutputStream(byteStream)) {
-            objectStream.writeObject(object);
-            return byteStream.toByteArray();
-        }
-    }
-
-    public static <T> T deserialize(byte[] data, int offset, Class<T> clazz) throws ClassNotFoundException, IOException {
-        try (ByteArrayInputStream stream = new ByteArrayInputStream(data, offset, data.length - offset);
-                ObjectInputStream objectStream = new ObjectInputStream(stream)) {
-            return (T) objectStream.readObject();
-        }
-    }
-
-    private String[] parsForComand(String line) {
-        String[] outMas = null;
-        String[] parsMas = line.split(" ", 2);
-
-        switch (parsMas[0]) {
-            case "echo":
-                outMas = line.split(" ", 2); // comand _ anyText                  
-                break;
-
-            case "msg":
-                outMas = line.split(" ", 3); // comand _ destination _ messegeText 
-                break;
-
-            default:
-                outMas = line.split(" ");
-                break;
-        }
-        return outMas;
     }
 }

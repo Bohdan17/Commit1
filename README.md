@@ -3,7 +3,6 @@ Commands entered in the following format:
 example : 
 
 ping
-echo
 echo anyText
 login login password 
 list
